@@ -132,6 +132,63 @@ namespace CCTasks
             return tasksList;
         }
 
+        static RealtimeTask SearchCriticalTask(List<RealtimeTask> tasksList)
+        {
+            RealtimeTask cTask = null;
+
+            for (int i = 0; i < tasksList.Count; i++)
+            {
+                if (tasksList[i].Hardness != "жесткое")
+                {
+                    continue;
+                }
+
+                if (cTask == null || tasksList[i].L < cTask.L)
+                {
+                    cTask = tasksList[i];
+                }
+            }
+
+            return cTask;
+        }
+
+        static double RequiredReactionTime(List<RealtimeTask> tasksList)
+        {
+            if (tasksList.Count == 0)
+            {
+                throw new ArgumentException("Список задач пуст.");
+            }
+
+            double minDeadline = double.PositiveInfinity;
+            bool hasHardTasks = false;
+
+            for (int i = 0; i < tasksList.Count; i++)
+            {
+                if (tasksList[i].Hardness == "жесткое")
+                {
+                    hasHardTasks = true;
+
+                    if (tasksList[i].D < minDeadline)
+                    {
+                        minDeadline = tasksList[i].D;
+                    }
+                }
+            }
+
+            if (!hasHardTasks)
+            {
+                for (int i = 0; i < tasksList.Count; i++)
+                {
+                    if (tasksList[i].D < minDeadline)
+                    {
+                        minDeadline = tasksList[i].D;
+                    }
+                }
+            }
+
+            return minDeadline;
+        }
+
 
     }
 }
