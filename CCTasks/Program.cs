@@ -26,6 +26,9 @@ namespace CCTasks
             }
 
             ReadSystemParameters(out int nCpu, out bool hasNetwork);
+
+            DeterminingTypeDeadline(allTasks);
+            CalculatingTaskStock(allTasks);
         }
 
         static void ReadSystemParameters(out int nCpu, out bool hasNetwork)
@@ -81,6 +84,54 @@ namespace CCTasks
 
             return tasks;
         }
+
+        static string TaskClassification(List<RealtimeTask> tasksList)
+        {
+            for (int i = 0; i < tasksList.Count; i++)
+            {
+                if (tasksList[i].Hardness == "жесткое")
+                {
+                    return "жесткого";
+                }
+            }
+
+            return "мягкого";
+        }
+
+        static List<RealtimeTask> DeterminingTypeDeadline(List<RealtimeTask> tasksList)
+        {
+            for (int i = 0; i < tasksList.Count; i++)
+            {
+                if (tasksList[i].D == tasksList[i].T)
+                {
+                    tasksList[i].deadlineType = "неявный";
+                    continue;
+                }
+                if (tasksList[i].D <= tasksList[i].T)
+                {
+                    tasksList[i].deadlineType = "ограниченный";
+                    continue;
+                }
+                if (tasksList[i].D >= tasksList[i].T)
+                {
+                    tasksList[i].deadlineType = "произвольный";
+                    continue;
+                }
+            }
+
+            return tasksList;
+        }
+
+        static List<RealtimeTask> CalculatingTaskStock(List<RealtimeTask> tasksList)
+        {
+            for (int i = 0; i < tasksList.Count; i++)
+            {
+                tasksList[i].L = tasksList[i].D - tasksList[i].C;
+            }
+
+            return tasksList;
+        }
+
 
     }
 }
