@@ -29,6 +29,11 @@ namespace CCTasks
 
             DeterminingTypeDeadline(allTasks);
             CalculatingTaskStock(allTasks);
+
+            PrintTasks(allTasks);
+            PrintConclusion(allTasks, nCpu, hasNetwork);
+
+            Console.ReadKey();
         }
 
         static void ReadSystemParameters(out int nCpu, out bool hasNetwork)
@@ -52,6 +57,70 @@ namespace CCTasks
             hasNetwork = answer == "да";
             Console.WriteLine();
         }
+
+        static void PrintConclusion(List<RealtimeTask> tasksList, int nCpu, bool hasNetwork)
+        {
+            RealtimeTask criticalTask = SearchCriticalTask(tasksList);
+            double reactionTime = RequiredReactionTime(tasksList);
+            double utilization = Utilization(tasksList);
+
+            bool allFeasible = tasksList.All(task => task.L >= 0);
+
+            Console.WriteLine();
+            Console.WriteLine(
+                $"Класс системы: {TaskClassification(tasksList)} реального времени.");
+
+            Console.WriteLine(
+                $"Архитектура: {ClassifyArchitecture(nCpu, hasNetwork)}.");
+
+            if (criticalTask != null)
+            {
+                Console.WriteLine(
+                    $"Критическая задача: {criticalTask.Name}, " +
+                    $"запас: {criticalTask.L:0.###} мс.");
+            }
+            else
+            {
+                Console.WriteLine("Критическая задача отсутствует: жестких задач нет.");
+            }
+
+            Console.WriteLine(
+                $"Требуемое время реакции: {reactionTime:0.###} мс.");
+
+            Console.WriteLine(
+                $"Загрузка: U = {utilization:0.####} " +
+                $"({utilization * 100:0.##}%).");
+
+            Console.WriteLine(utilization <= 1
+                ? "Условие U <= 1 выполнено."
+                : "Условие U <= 1 не выполнено.");
+
+            if (!allFeasible)
+            {
+                Console.WriteLine(
+                    "Есть задачи с C > D: их дедлайны невыполнимы.");
+            }
+            else if (nCpu == 1 && utilization > 1)
+            {
+                Console.WriteLine(
+                    "Для всех задач C <= D, но один процессор перегружен.");
+            }
+            else
+            {
+                Console.WriteLine(
+                    "Для всех задач C <= D. Для гарантии соблюдения " +
+                    "дедлайнов нужен анализ расписания.");
+            }
+
+            if (nCpu > 1)
+            {
+                Console.WriteLine(
+                    "При нескольких процессорах U > 1 само по себе не означает " +
+                    "перегрузку: нужно учитывать распределение задач.");
+            }
+        }
+
+
 
         static List<RealtimeTask> ReadingTask()
         {
@@ -221,6 +290,48 @@ namespace CCTasks
             }
 
             return "многопроцессорная";
+        }
+
+        static void PrintTasks(List<RealtimeTask> tasksList)
+        {
+            int nameWidth = "Задача".Length;
+            int hardnessWidth = "Класс".Length;
+
+            for (int i = 0; i < tasksList.Count; i++)
+            {
+                nameWidth = Math.Max(nameWidth, tasksList[i].Name.Length);
+                hardnessWidth = Math.Max(hardnessWidth, tasksList[i].Hardness.Length);
+            }
+
+            string header =
+                $"{"Задача".PadRight(nameWidth)} | " +
+                $"{"Класс".PadRight(hardnessWidth)} | " +
+                $"{"C",10} | {"D",10} | {"T",10} | {"L",10} | " +
+                $"{"Выполнимо",-9} | Тип дедлайна";
+
+            Console.WriteLine("Все значения времени указаны в миллисекундах.");
+            Console.WriteLine();
+            Console.WriteLine(header);
+            Console.WriteLine(new string('-', header.Length));
+
+            for (int i = 0; i < tasksList.Count; i++)
+            {
+                RealtimeTask task = tasksList[i];
+
+                task.signFeasibility = task.L >= 0 ? "Да" : "Нет";
+
+                Console.WriteLine(
+                    $"{task.Name.PadRight(nameWidth)} | " +
+                    $"{task.Hardness.PadRight(hardnessWidth)} | " +
+                    $"{task.C,10:0.###} | " +
+                    $"{task.D,10:0.###} | " +
+                    $"{task.T,10:0.###} | " +
+                    $"{task.L,10:0.###} | " +
+                    $"{task.signFeasibility,-9} | " +
+                    $"{task.deadlineType}");
+            }
+
+            Console.WriteLine(new string('-', header.Length));
         }
 
     }
