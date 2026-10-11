@@ -190,5 +190,38 @@ namespace CCTasks
         }
 
 
+        static double Utilization(List<RealtimeTask> tasksList)
+        {
+            double utilization = 0;
+
+            for (int i = 0; i < tasksList.Count; i++)
+            {
+                utilization += tasksList[i].C / tasksList[i].T;
+            }
+
+            return utilization;
+        }
+
+        static string ClassifyArchitecture(int nCpu, bool hasNetwork)
+        {
+            if (nCpu < 1)
+            {
+                throw new ArgumentException(
+                    "Количество процессоров должно быть не меньше 1.");
+            }
+
+            if (hasNetwork)
+            {
+                return "распределенная";
+            }
+
+            if (nCpu == 1)
+            {
+                return "однопроцессорная";
+            }
+
+            return "многопроцессорная";
+        }
+
     }
 }
